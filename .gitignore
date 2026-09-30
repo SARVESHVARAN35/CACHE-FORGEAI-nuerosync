@@ -1,0 +1,17 @@
+# Dependencies & Build Outputs
+**/node_modules/
+**/target/
+**/dist/
+**/.vite/
+
+# IDE & OS files
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.bak
