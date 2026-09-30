@@ -1,5 +1,5 @@
 import type {
-  CacheEntryDto, CacheStats, CompareResult, GetResponse, PolicyType,
+  CacheEntryDto, CacheStats, CompareResult, ConcurrentRequest, ConcurrentResult, GetResponse, PolicyType,
   RemoveResponse, SimulateResponse, Snapshot, WorkloadRequest,
 } from '../types/cache';
 
@@ -48,4 +48,6 @@ export const api = {
     request<CompareResult>('/compare', { method: 'POST', body: JSON.stringify(req) }),
   simulate: (req: WorkloadRequest) =>
     request<SimulateResponse>('/simulate', { method: 'POST', body: JSON.stringify(req) }),
+  concurrent: (req: ConcurrentRequest) =>
+    request<ConcurrentResult>('/concurrent', { method: 'POST', body: JSON.stringify(req) }),
 };

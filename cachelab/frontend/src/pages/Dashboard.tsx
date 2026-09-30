@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Layers, Wifi, WifiOff } from 'lucide-react';
 import { ActivityFeed } from '../components/ActivityFeed';
 import { AnomalyBanner } from '../components/AnomalyBanner';
+import { ConcurrentStressTest } from '../components/ConcurrentStressTest';
 import { ControlPanel } from '../components/ControlPanel';
 import { EntriesTable } from '../components/EntriesTable';
 import { HealthIndicator } from '../components/HealthIndicator';
@@ -113,7 +114,10 @@ export default function Dashboard() {
             <ActivityFeed events={snapshot.events} />
           </div>
 
-          <WorkloadComparison simulating={snapshot.stats.simulating} onLiveStarted={refresh} />
+          <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+            <WorkloadComparison simulating={snapshot.stats.simulating} onLiveStarted={refresh} />
+            <ConcurrentStressTest onDone={refresh} />
+          </div>
         </div>
       )}
     </div>

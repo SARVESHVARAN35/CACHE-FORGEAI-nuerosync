@@ -38,4 +38,8 @@ public final class Dtos {
                                 PolicyResult lru, PolicyResult lfu, PolicyResult adaptive,
                                 String winner, double lfuAdvantage) {}
     public record SimulateResponse(boolean started, int requests, String pattern) {}
+
+    public record ConcurrentRequest(Integer threads, Integer requestsPerThread, Double putRatio, Integer keySpace) {}
+    public record ConcurrentResult(int threads, int totalRequests, double durationMs, double opsPerSec,
+                                    long hits, long misses, long evictions) {}
 }

@@ -59,4 +59,7 @@ public class CacheController {
 
     @PostMapping("/simulate")
     public SimulateResponse simulate(@RequestBody WorkloadRequest request) { return service.simulate(request); }
+
+    @PostMapping("/concurrent")
+    public ConcurrentResult concurrent(@RequestBody ConcurrentRequest request) { return service.runConcurrentBurst(request); }
 }

@@ -122,3 +122,20 @@ export interface SimulateResponse {
   requests: number;
   pattern: Pattern;
 }
+
+export interface ConcurrentRequest {
+  threads?: number;
+  requestsPerThread?: number;
+  putRatio?: number;
+  keySpace?: number;
+}
+
+export interface ConcurrentResult {
+  threads: number;
+  totalRequests: number;
+  durationMs: number;
+  opsPerSec: number;
+  hits: number;
+  misses: number;
+  evictions: number;
+}

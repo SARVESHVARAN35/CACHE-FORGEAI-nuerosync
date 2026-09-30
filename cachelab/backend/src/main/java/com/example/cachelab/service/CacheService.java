@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
@@ -199,5 +200,59 @@ public class CacheService {
         t.setDaemon(true);
         t.start();
         return new SimulateResponse(true, requests, pattern);
+    }
+
+    /**
+     * Executes a multi-threaded concurrent burst test where N threads simultaneously read and write to the cache.
+     * Demonstrates lock contention management, thread safety, and execution throughput (ops/sec).
+     */
+    public ConcurrentResult runConcurrentBurst(ConcurrentRequest req) {
+        int threads = WorkloadComparator.clamp(req.threads() == null ? 8 : req.threads(), 1, 64);
+        int perThread = WorkloadComparator.clamp(req.requestsPerThread() == null ? 1000 : req.requestsPerThread(), 10, 50_000);
+        double putRatio = req.putRatio() == null ? 0.3 : Math.max(0.0, Math.min(1.0, req.putRatio()));
+        int keySpace = WorkloadComparator.clamp(req.keySpace() == null ? 100 : req.keySpace(), 2, 5000);
+
+        long hitsBefore = metrics.getHits();
+        long missesBefore = metrics.getMisses();
+        long evictionsBefore = metrics.getEvictions();
+
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        long start = System.nanoTime();
+
+        CountDownLatch latch = new CountDownLatch(threads);
+        for (int t = 0; t < threads; t++) {
+            final int threadId = t;
+            executor.submit(() -> {
+                Random rnd = new Random(threadId * 31L + System.currentTimeMillis());
+                for (int i = 0; i < perThread; i++) {
+                    String key = "conc-key-" + rnd.nextInt(keySpace);
+                    if (rnd.nextDouble() < putRatio) {
+                        put(key, "val-" + threadId + "-" + i, null);
+                    } else {
+                        get(key);
+                    }
+                }
+                latch.countDown();
+            });
+        }
+
+        try {
+            latch.await(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            executor.shutdownNow();
+        }
+
+        long elapsedNs = System.nanoTime() - start;
+        double durationMs = CacheMetrics.round1(elapsedNs / 1_000_000.0);
+        int totalRequests = threads * perThread;
+        double opsPerSec = durationMs <= 0 ? 0 : CacheMetrics.round1((totalRequests * 1000.0) / durationMs);
+
+        long hits = metrics.getHits() - hitsBefore;
+        long misses = metrics.getMisses() - missesBefore;
+        long evictions = metrics.getEvictions() - evictionsBefore;
+
+        return new ConcurrentResult(threads, totalRequests, durationMs, opsPerSec, hits, misses, evictions);
     }
 }
